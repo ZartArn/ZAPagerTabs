@@ -8,20 +8,42 @@
 
 #import "ZAPageTabsViewController.h"
 
+#define TABBAR_HEIGHT 44.f
+
 @interface ZAPageTabsViewController ()
 
 @property (strong, nonatomic) UIScrollView *containerView;
 @property (nonatomic) CGSize lastContentSize;
+
+@property (strong, nonatomic) ZAPageTabsBar *pageTabBar;
 
 @end
 
 @implementation ZAPageTabsViewController
 
 - (void)loadView {
-    UIView *aView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    
+    self.automaticallyAdjustsScrollViewInsets = NO;
+    
+
+    
+    CGRect rect;
+    rect = [UIScreen mainScreen].bounds;
+    
+    UIView *aView = [[UIView alloc] initWithFrame:rect];
     self.view = aView;
     
-    self.containerView = [[UIScrollView alloc] initWithFrame:aView.bounds];
+    // tab bar
+    self.pageTabBar = [[ZAPageTabsBar alloc] init];
+    self.pageTabBar.delegate = self;
+    CGRect barRect = (CGRect){.size = (CGSize){aView.bounds.size.width, TABBAR_HEIGHT}};
+    self.pageTabBar.barView.frame = barRect;
+    self.pageTabBar.barView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [aView addSubview:self.pageTabBar.barView];
+    
+    // container
+    CGRect containerRect = (CGRect){0.f, TABBAR_HEIGHT, aView.bounds.size.width, aView.bounds.size.height - TABBAR_HEIGHT};
+    self.containerView = [[UIScrollView alloc] initWithFrame:containerRect];
     _containerView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     
     _containerView.bounces = YES;
@@ -34,23 +56,33 @@
     
     _containerView.delegate = self;
     
-    _containerView.backgroundColor = [UIColor yellowColor];
+    _containerView.backgroundColor = [UIColor whiteColor];
     [aView addSubview:_containerView];
+
+    if (@available(iOS 11.0, *)) {
+        self.containerView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    } else {
+        // Fallback on earlier versions
+    }
+    
+    _selectedIndex = 0;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
 
     // first child controller
-    if (_selectedIndex < self.viewControllers.count) {
+    if (_selectedIndex < [self.viewControllers count]) {
         UIViewController *toController = [self.viewControllers objectAtIndex:_selectedIndex];
         [self addChildViewController:toController];
         toController.view.frame = self.containerView.bounds;
         toController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         [self.containerView addSubview:toController.view];
         [toController didMoveToParentViewController:self];
-        
     }
+    
+    NSArray *items = [self.viewControllers valueForKeyPath:@"title"];
+    self.pageTabBar.items = items;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -118,6 +150,21 @@
     }
 }
 
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    CGPoint center = (CGPoint){scrollView.contentOffset.x + (scrollView.frame.size.width / 2), (scrollView.frame.size.height / 2)};
+    NSInteger pageIdx = center.x / _containerView.bounds.size.width;
+    self.selectedIndex = pageIdx;
+}
+
+#pragma mark - ZAPageTabsBarDelegate
+
+- (void)pageTabsBar:(ZAPageTabsBar *)pageTabsBar didSelectItemAtIndex:(NSUInteger)index {
+    CGFloat offset = [self pageOffsetForChildAtIndex:index];
+    [self.containerView setContentOffset:(CGPoint){offset, 0} animated:YES];
+    self.selectedIndex = index;
+    [self updateContent];
+}
+
 #pragma mark - helpers
 
 - (void)updateIfNeeded {
@@ -128,6 +175,15 @@
 
 - (CGFloat)pageOffsetForChildAtIndex:(NSInteger)index {
     return ((float)index * _containerView.bounds.size.width);
+}
+
+#pragma mark - lazy
+
+- (void)setSelectedIndex:(NSUInteger)selectedIndex {
+//    if (_selectedIndex != selectedIndex) {
+        _selectedIndex = selectedIndex;
+        self.pageTabBar.selectedIndex = selectedIndex;
+//    }
 }
 
 @end

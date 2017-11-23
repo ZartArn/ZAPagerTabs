@@ -7,8 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ZAPageTabsBar.h"
 
-@interface ZAPageTabsViewController : UIViewController <UIScrollViewDelegate>
+@interface ZAPageTabsViewController : UIViewController <UIScrollViewDelegate, ZAPageTabsBarDelegate>
+
+/// tab bar
+@property (strong, nonatomic) ZAPageTabsBar *tabBar;
 
 /// child viewcontrollers
 @property (strong, nonatomic) NSArray *viewControllers;
