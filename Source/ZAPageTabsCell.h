@@ -9,6 +9,7 @@
 
 @interface ZAPageTabsCell : UICollectionViewCell
 
+@property (strong, nonatomic) UIImageView *icon;
 @property (strong, nonatomic) UILabel *titleLabel;
 
 @end

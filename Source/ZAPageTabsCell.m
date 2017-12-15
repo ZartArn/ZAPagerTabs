@@ -6,9 +6,7 @@
 //
 
 #import "ZAPageTabsCell.h"
-#import "NSObject+ZAObjectMaker.h"
 #import "Typography.h"
-#import <GeneralHelpers/UIColor+tools.h>
 #import <Masonry/Masonry.h>
 
 @implementation ZAPageTabsCell
@@ -22,19 +20,37 @@
 
 - (void)configureViews {
     
-    self.titleLabel = [UILabel za_makeObject:^(UILabel *i) {
-        i.font                      = [Typography regularFontWithSize:16.f];
-        i.textColor                 = [Typography mainColor];
-        i.highlightedTextColor      = [Typography activeColor];
-        i.textAlignment             = NSTextAlignmentCenter;
-    }];
+    self.titleLabel = [[UILabel alloc] init];
+    _titleLabel.font                      = [Typography regularFontWithSize:16.f];
+    _titleLabel.textColor                 = [Typography mainColor];
+    _titleLabel.highlightedTextColor      = [Typography activeColor];
+    _titleLabel.textAlignment             = NSTextAlignmentCenter;
+
+    self.icon = [[UIImageView alloc] init];
+//    self.icon.contentMode = UIViewContentModeScaleAspectFit;
     
     // hierarchy
+    [self.contentView addSubview:self.icon];
     [self.contentView addSubview:self.titleLabel];
     
     // layouts
-    self.titleLabel.frame = self.contentView.bounds;
-    self.titleLabel.autoresizingMask = 18;
+//    self.titleLabel.frame = self.contentView.bounds;
+//    self.titleLabel.autoresizingMask = 18;
+    [self configureLayouts];
+}
+
+- (void)configureLayouts {
+    
+    [self.icon mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(@0.f);
+        make.width.height.equalTo(@15.f);
+        make.centerX.equalTo(@0.f);
+    }];
+    
+    [self.titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.icon.mas_bottom);
+        make.leading.trailing.bottom.equalTo(@0.f);
+    }];
 }
 
 @end

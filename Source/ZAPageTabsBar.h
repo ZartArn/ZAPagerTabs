@@ -14,9 +14,19 @@
 
 @property (strong, nonatomic) UIView *barView;
 @property (strong, nonatomic) NSArray *items;
+@property (strong, nonatomic) NSArray *iconNames;
 
 @property (nonatomic) NSUInteger selectedIndex;
 @property (weak, nonatomic) id<ZAPageTabsBarDelegate> delegate;
+
+- (void)setItems:(NSArray *)items iconNames:(NSArray *)names;
+
+
+- (void)configure;
+
+- (void)updateBottomView;
+
+- (void)updatePercentage:(CGFloat)percent;
 
 @end
 

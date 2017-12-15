@@ -8,6 +8,7 @@
 #import "ZAPageTabsBar.h"
 #import "ZAPageTabsCell.h"
 #import "Typography.h"
+#import "StyleHelper.h"
 
 #define TITLE_INSETS (UIEdgeInsets){0.f, 5.f, 0.f, 5.f}
 
@@ -15,6 +16,12 @@
 
 @property (strong, nonatomic) UICollectionView *collectionView;
 @property (strong, nonatomic) NSDictionary *cachedCellWidths;
+@property (strong, nonatomic) UIView *bView;
+
+@property (strong, nonatomic) UIColor *normalColor;
+@property (strong, nonatomic) UIColor *activeColor;
+
+@property (nonatomic) CGFloat bHeight;
 
 @end
 
@@ -22,12 +29,16 @@
 
 - (instancetype)init {
     if (self = [super init]) {
-        [self configureViews];
     }
     return self;
 }
 
 - (void)configureViews {
+    
+    // style
+    _bHeight = 1.5f;
+    self.normalColor = [Typography mainColor];
+    self.activeColor = [Typography activeColor];
     
     // bar
     self.barView = [UIView new];
@@ -45,6 +56,15 @@
     
     [self.barView addSubview:self.collectionView];
 
+    // bottom view
+    self.bView = [UIView new];
+    self.bView.backgroundColor = [Typography activeColor];
+    self.bView.layer.zPosition = 9999;
+    [self.barView addSubview:self.bView];
+}
+
+- (void)configure {
+    [self configureViews];    
     self.collectionView.dataSource = self;
     self.collectionView.delegate = self;
     [self.collectionView registerClass:[ZAPageTabsCell class] forCellWithReuseIdentifier:@"Cell"];
@@ -52,18 +72,20 @@
 
 #pragma mark - lazy
 
-- (void)setItems:(NSArray *)items {
-    if (_items != items) {
-        _items = items;
+- (void)setItems:(NSArray *)items iconNames:(NSArray *)names {    
+//    [self.collectionView performBatchUpdates:^{
+        self.items = items;
+        self.iconNames = names;
         [self calculateWidths];
         [self.collectionView reloadData];
+//    } completion:^(BOOL finished) {
         if (_selectedIndex >= items.count) {
-            _selectedIndex = 0;
+            self.selectedIndex = 0;
         }
         [self.collectionView selectItemAtIndexPath:[NSIndexPath indexPathForRow:_selectedIndex inSection:0]
                                           animated:YES
                                     scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
-    }
+//    }];
 }
 
 - (void)setSelectedIndex:(NSUInteger)selectedIndex {
@@ -72,6 +94,11 @@
         [self.collectionView selectItemAtIndexPath:[NSIndexPath indexPathForRow:selectedIndex inSection:0]
                                           animated:YES
                                     scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self updateBottomView];
+        });
+    } else {
+        [self updateBottomView];
     }
 }
 
@@ -88,7 +115,7 @@
         
         NSAttributedString *ss =[[NSAttributedString alloc] initWithString:title
                                                                 attributes: @{
-                                                                              NSFontAttributeName : [UIFont systemFontOfSize:18.f]
+                                                                              NSFontAttributeName : [Typography regularFontWithSize:18.f]
                                                                               }];
         
         CGRect titleRect = [ss boundingRectWithSize:(CGSize){CGFLOAT_MAX, 50.f}
@@ -108,6 +135,57 @@
     NSLog(@"%@", self.cachedCellWidths);
 }
 
+#pragma mark - bottomView
+
+- (void)updateBottomView {
+    NSLog(@"%s", __FUNCTION__);
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
+    UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
+    
+    CGRect rect = [cell.superview convertRect:cell.frame toView:self.barView];
+    
+    CGRect newRect;
+    if (cell) {
+        newRect = (CGRect){
+                                        rect.origin.x,
+                                        self.barView.bounds.size.height - _bHeight,
+                                        rect.size.width,
+                                        _bHeight
+                                    };
+    } else {
+        newRect = CGRectZero;
+    }
+//    NSLog(@"%@", NSStringFromCGRect(newRect));
+    
+    [UIView animateWithDuration:0.3f animations:^{
+        self.bView.frame = newRect;
+    }];
+}
+
+- (void)updatePercentage:(CGFloat)percent {
+    NSLog(@"%s", __FUNCTION__);
+    NSInteger nextIdx = MIN(self.items.count - 1, (_selectedIndex + 1));
+    NSIndexPath *currentIndexPath = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
+    NSIndexPath *nextIndexPath = [NSIndexPath indexPathForItem:nextIdx inSection:0];
+    
+    UICollectionViewCell *currentCell = [self.collectionView cellForItemAtIndexPath:currentIndexPath];
+    CGRect rect = [currentCell.superview convertRect:currentCell.frame toView:self.barView];
+//    UICollectionViewCell *nextCell = [self.collectionView cellForItemAtIndexPath:nextIndexPath];
+    
+    CGFloat nextWidth = [[self.cachedCellWidths objectForKey:nextIndexPath] floatValue];
+    CGFloat dx = nextWidth * percent;
+
+    CGRect newRect = (CGRect){
+        rect.origin.x,
+        self.barView.bounds.size.height - _bHeight,
+        rect.size.width + dx,
+        _bHeight
+    };
+//    NSLog(@"%@", NSStringFromCGRect(newRect));
+    
+    self.bView.frame = newRect;
+}
+
 #pragma mark - UICollectionViewDataSource
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
@@ -125,7 +203,10 @@
     ZAPageTabsCell *cell = (ZAPageTabsCell *)aCell;
     
     NSString *title = [self.items objectAtIndex:indexPath.row];
+    NSString *icon = [self.iconNames objectAtIndex:indexPath.row];
     cell.titleLabel.text = title;
+    cell.icon.highlightedImage = [StyleHelper loadImage:icon];
+    cell.icon.image = nil;
     
 //    [cell configureWithViewModel:[self.viewModel cellViewModelForIndexPath:indexPath]];
 }

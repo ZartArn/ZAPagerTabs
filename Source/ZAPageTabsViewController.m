@@ -13,13 +13,25 @@
 @interface ZAPageTabsViewController ()
 
 @property (strong, nonatomic) UIScrollView *containerView;
-@property (nonatomic) CGSize lastContentSize;
-
 @property (strong, nonatomic) ZAPageTabsBar *pageTabBar;
+
+@property (nonatomic) CGSize lastContentSize;
+@property (nonatomic) CGFloat lastOffsetX;
 
 @end
 
+
 @implementation ZAPageTabsViewController
+
+- (instancetype)init {
+    if (self = [super init]) {
+        // tab bar
+        self.pageTabBar = [[ZAPageTabsBar alloc] init];
+    }
+    return self;
+}
+
+#pragma mark - life cycle
 
 - (void)loadView {
     
@@ -34,7 +46,7 @@
     self.view = aView;
     
     // tab bar
-    self.pageTabBar = [[ZAPageTabsBar alloc] init];
+    [self.pageTabBar configure];
     self.pageTabBar.delegate = self;
     CGRect barRect = (CGRect){.size = (CGSize){aView.bounds.size.width, TABBAR_HEIGHT}};
     self.pageTabBar.barView.frame = barRect;
@@ -64,7 +76,6 @@
     } else {
         // Fallback on earlier versions
     }
-    
     _selectedIndex = 0;
 }
 
@@ -79,10 +90,12 @@
         toController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         [self.containerView addSubview:toController.view];
         [toController didMoveToParentViewController:self];
+//        self.selectedIndex = 0;
     }
     
     NSArray *items = [self.viewControllers valueForKeyPath:@"title"];
-    self.pageTabBar.items = items;
+    [self.pageTabBar setItems:items iconNames:self.iconNames];;
+    
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -92,6 +105,7 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    [self.pageTabBar updateBottomView];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -140,6 +154,35 @@
             }
         }
     }];
+    
+    // --
+//    NSInteger currentIndex = _selectedIndex;
+//    NSInteger virtualPage = [self virtualPageForContentOffset:self.containerView.contentOffset.x];
+//    NSInteger newCurrentIndex = [self pageForVirtualPage:virtualPage];
+//
+//    BOOL changeCurrentIndex = newCurrentIndex != currentIndex;
+    
+    
+/*
+    BOOL swipeLeftDisrection = self.containerView.contentOffset.x > _lastOffsetX;
+    _lastOffsetX = self.containerView.contentOffset.x;
+    
+    CGFloat percent = [self scrollPercentage:swipeLeftDisrection];
+    [self.pageTabBar updatePercentage:percent];
+*/
+ 
+//    currentIndex = newCurrentIndex
+//    preCurrentIndex = currentIndex
+//    let changeCurrentIndex = newCurrentIndex != oldCurrentIndex
+    
+//    if let progressiveDeledate = self as? PagerTabStripIsProgressiveDelegate, pagerBehaviour.isProgressiveIndicator {
+//        
+//        let (fromIndex, toIndex, scrollPercentage) = progressiveIndicatorData(virtualPage)
+//        progressiveDeledate.updateIndicator(for: self, fromIndex: fromIndex, toIndex: toIndex, withProgressPercentage: scrollPercentage, indexWasChanged: changeCurrentIndex)
+//    } else {
+//        delegate?.updateIndicator(for: self, fromIndex: min(oldCurrentIndex, pagerViewControllers.count - 1), toIndex: newCurrentIndex)
+//    }
+    
 }
 
 #pragma mark - UIScrollViewDelegate
@@ -175,6 +218,35 @@
 
 - (CGFloat)pageOffsetForChildAtIndex:(NSInteger)index {
     return ((float)index * _containerView.bounds.size.width);
+}
+
+- (NSInteger)virtualPageForContentOffset:(CGFloat)contentOffset {
+    CGFloat pageWidth = self.containerView.bounds.size.width;
+    return (NSInteger)((contentOffset + 1.5 * pageWidth) / pageWidth) - 1;
+}
+
+- (NSInteger)pageForVirtualPage:(NSInteger)virtualPage {
+    if (virtualPage < 0) {
+        return 0;
+    }
+    if (virtualPage > self.viewControllers.count - 1) {
+        return (self.viewControllers.count - 1);
+    }
+    return virtualPage;
+}
+
+- (CGFloat)scrollPercentage:(BOOL)isLeftDirection {
+    CGFloat pageWidth = self.containerView.bounds.size.width;
+    NSInteger i = ((int)floorf(self.containerView.contentOffset.x) % (int)floorf(pageWidth));
+    if (isLeftDirection) {
+        CGFloat percent = i == 0 ? 1.f : i / pageWidth;
+        NSLog(@"percent :: %@", @(percent));
+        return percent;
+    } else {
+        CGFloat percent = i / pageWidth;
+        NSLog(@"percent :: %@", @(percent));
+        return percent;
+    }
 }
 
 #pragma mark - lazy

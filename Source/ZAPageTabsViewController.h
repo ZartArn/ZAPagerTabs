@@ -17,6 +17,9 @@
 /// child viewcontrollers
 @property (strong, nonatomic) NSArray *viewControllers;
 
+/// icon names
+@property (strong, nonatomic) NSArray *iconNames;
+
 /// currently selected view controller
 @property (assign, nonatomic) UIViewController *selectedViewController;
 
