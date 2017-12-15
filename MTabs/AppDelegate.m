@@ -7,7 +7,6 @@
 //
 
 #import "AppDelegate.h"
-#import "ZZViewController.h"
 #import "ZAPageTabsViewController.h"
 #import "ViewController.h"
 
@@ -25,6 +24,10 @@
     ViewController *v1 = [[ViewController alloc] initWithItemsCount:30];
     ViewController *v2 = [[ViewController alloc] initWithItemsCount:5];
     ViewController *v3 = [[ViewController alloc] initWithItemsCount:21];
+    
+    v1.title = @"Title-Title";
+    v2.title = @"Bumbarash-Bum";
+    v3.title = @"Abrakadabra-Da-Da";
     
     rootVC.viewControllers = @[v1, v2, v3];
     

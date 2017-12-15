@@ -6,5 +6,6 @@ target 'MTabs' do
   # use_frameworks!
 
   # Pods for MTabs
-pod 'MaterialComponents/Tabs'
+  # pod 'MaterialComponents/Tabs'
+  pod 'Masonry'
 end

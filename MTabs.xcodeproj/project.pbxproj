@@ -8,21 +8,28 @@
 
 /* Begin PBXBuildFile section */
 		158B2D79F36A67E57BC0DAD4 /* libPods-MTabs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 78DB4CAC92B728D89B5FB59F /* libPods-MTabs.a */; };
+		B50433991FE3408B00E83389 /* ZAPageTabsBar.m in Sources */ = {isa = PBXBuildFile; fileRef = B50433941FE3408B00E83389 /* ZAPageTabsBar.m */; };
+		B504339A1FE3408B00E83389 /* ZAPageTabsCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B50433961FE3408B00E83389 /* ZAPageTabsCell.m */; };
+		B504339B1FE3408B00E83389 /* ZAPageTabsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B50433981FE3408B00E83389 /* ZAPageTabsViewController.m */; };
 		B5C8D9181F8239470029A9F0 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C8D9171F8239470029A9F0 /* main.m */; };
 		B5C8D91B1F8239470029A9F0 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C8D91A1F8239470029A9F0 /* AppDelegate.m */; };
 		B5C8D91E1F8239470029A9F0 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C8D91D1F8239470029A9F0 /* ViewController.m */; };
 		B5C8D9211F8239470029A9F0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B5C8D91F1F8239470029A9F0 /* Main.storyboard */; };
 		B5C8D9231F8239470029A9F0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B5C8D9221F8239470029A9F0 /* Assets.xcassets */; };
 		B5C8D9261F8239470029A9F0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B5C8D9241F8239470029A9F0 /* LaunchScreen.storyboard */; };
-		B5C8D92F1F823AEE0029A9F0 /* ZZViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C8D92E1F823AEE0029A9F0 /* ZZViewController.m */; };
 		B5C8D9321F8245280029A9F0 /* UIColor+tools.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C8D9311F8245280029A9F0 /* UIColor+tools.m */; };
 		B5C8D9371F82AE600029A9F0 /* ZASandwichController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C8D9361F82AE600029A9F0 /* ZASandwichController.m */; };
 		B5C8D93A1F82BBA50029A9F0 /* ZATransitionContext.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C8D9391F82BBA50029A9F0 /* ZATransitionContext.m */; };
-		B5C8D93D1F82BC710029A9F0 /* ZAPageTabsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C8D93C1F82BC710029A9F0 /* ZAPageTabsViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		78DB4CAC92B728D89B5FB59F /* libPods-MTabs.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MTabs.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B50433931FE3408B00E83389 /* ZAPageTabsBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZAPageTabsBar.h; sourceTree = "<group>"; };
+		B50433941FE3408B00E83389 /* ZAPageTabsBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZAPageTabsBar.m; sourceTree = "<group>"; };
+		B50433951FE3408B00E83389 /* ZAPageTabsCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZAPageTabsCell.h; sourceTree = "<group>"; };
+		B50433961FE3408B00E83389 /* ZAPageTabsCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZAPageTabsCell.m; sourceTree = "<group>"; };
+		B50433971FE3408B00E83389 /* ZAPageTabsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZAPageTabsViewController.h; sourceTree = "<group>"; };
+		B50433981FE3408B00E83389 /* ZAPageTabsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZAPageTabsViewController.m; sourceTree = "<group>"; };
 		B5C8D9131F8239470029A9F0 /* MTabs.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MTabs.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5C8D9171F8239470029A9F0 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		B5C8D9191F8239470029A9F0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -33,16 +40,12 @@
 		B5C8D9221F8239470029A9F0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B5C8D9251F8239470029A9F0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B5C8D9271F8239470029A9F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B5C8D92D1F823AEE0029A9F0 /* ZZViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZZViewController.h; sourceTree = "<group>"; };
-		B5C8D92E1F823AEE0029A9F0 /* ZZViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZZViewController.m; sourceTree = "<group>"; };
 		B5C8D9301F8245280029A9F0 /* UIColor+tools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+tools.h"; sourceTree = "<group>"; };
 		B5C8D9311F8245280029A9F0 /* UIColor+tools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+tools.m"; sourceTree = "<group>"; };
 		B5C8D9351F82AE600029A9F0 /* ZASandwichController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZASandwichController.h; sourceTree = "<group>"; };
 		B5C8D9361F82AE600029A9F0 /* ZASandwichController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZASandwichController.m; sourceTree = "<group>"; };
 		B5C8D9381F82BBA50029A9F0 /* ZATransitionContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZATransitionContext.h; sourceTree = "<group>"; };
 		B5C8D9391F82BBA50029A9F0 /* ZATransitionContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZATransitionContext.m; sourceTree = "<group>"; };
-		B5C8D93B1F82BC710029A9F0 /* ZAPageTabsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZAPageTabsViewController.h; sourceTree = "<group>"; };
-		B5C8D93C1F82BC710029A9F0 /* ZAPageTabsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZAPageTabsViewController.m; sourceTree = "<group>"; };
 		B9FD4B26775491E94642081A /* Pods-MTabs.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MTabs.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MTabs/Pods-MTabs.debug.xcconfig"; sourceTree = "<group>"; };
 		CB9D6777507AC052F9FEC7ED /* Pods-MTabs.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MTabs.release.xcconfig"; path = "Pods/Target Support Files/Pods-MTabs/Pods-MTabs.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -68,6 +71,19 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
+		B50433921FE3408B00E83389 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				B50433931FE3408B00E83389 /* ZAPageTabsBar.h */,
+				B50433941FE3408B00E83389 /* ZAPageTabsBar.m */,
+				B50433951FE3408B00E83389 /* ZAPageTabsCell.h */,
+				B50433961FE3408B00E83389 /* ZAPageTabsCell.m */,
+				B50433971FE3408B00E83389 /* ZAPageTabsViewController.h */,
+				B50433981FE3408B00E83389 /* ZAPageTabsViewController.m */,
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
 		B5C8D90A1F8239470029A9F0 = {
 			isa = PBXGroup;
 			children = (
@@ -89,6 +105,7 @@
 		B5C8D9151F8239470029A9F0 /* MTabs */ = {
 			isa = PBXGroup;
 			children = (
+				B50433921FE3408B00E83389 /* Source */,
 				B5C8D9381F82BBA50029A9F0 /* ZATransitionContext.h */,
 				B5C8D9391F82BBA50029A9F0 /* ZATransitionContext.m */,
 				B5C8D9351F82AE600029A9F0 /* ZASandwichController.h */,
@@ -104,10 +121,6 @@
 				B5C8D9241F8239470029A9F0 /* LaunchScreen.storyboard */,
 				B5C8D9271F8239470029A9F0 /* Info.plist */,
 				B5C8D9161F8239470029A9F0 /* Supporting Files */,
-				B5C8D92D1F823AEE0029A9F0 /* ZZViewController.h */,
-				B5C8D92E1F823AEE0029A9F0 /* ZZViewController.m */,
-				B5C8D93B1F82BC710029A9F0 /* ZAPageTabsViewController.h */,
-				B5C8D93C1F82BC710029A9F0 /* ZAPageTabsViewController.m */,
 			);
 			path = MTabs;
 			sourceTree = "<group>";
@@ -251,13 +264,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5C8D92F1F823AEE0029A9F0 /* ZZViewController.m in Sources */,
+				B50433991FE3408B00E83389 /* ZAPageTabsBar.m in Sources */,
+				B504339B1FE3408B00E83389 /* ZAPageTabsViewController.m in Sources */,
 				B5C8D9371F82AE600029A9F0 /* ZASandwichController.m in Sources */,
 				B5C8D91E1F8239470029A9F0 /* ViewController.m in Sources */,
 				B5C8D91B1F8239470029A9F0 /* AppDelegate.m in Sources */,
 				B5C8D93A1F82BBA50029A9F0 /* ZATransitionContext.m in Sources */,
+				B504339A1FE3408B00E83389 /* ZAPageTabsCell.m in Sources */,
 				B5C8D9181F8239470029A9F0 /* main.m in Sources */,
-				B5C8D93D1F82BC710029A9F0 /* ZAPageTabsViewController.m in Sources */,
 				B5C8D9321F8245280029A9F0 /* UIColor+tools.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
