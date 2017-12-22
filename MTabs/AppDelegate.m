@@ -24,12 +24,14 @@
     ViewController *v1 = [[ViewController alloc] initWithItemsCount:30];
     ViewController *v2 = [[ViewController alloc] initWithItemsCount:5];
     ViewController *v3 = [[ViewController alloc] initWithItemsCount:21];
+    ViewController *v4 = [[ViewController alloc] initWithItemsCount:8];
     
     v1.title = @"Title-Title";
-    v2.title = @"Bumbarash-Bum";
+    v2.title = @"Short";
+    v4.title = @"Bumbarash-Bum";
     v3.title = @"Abrakadabra-Da-Da";
     
-    rootVC.viewControllers = @[v1, v2, v3];
+    rootVC.viewControllers = @[v1, v2, v3, v4];
     
     // window
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];

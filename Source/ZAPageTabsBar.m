@@ -14,7 +14,6 @@
 
 @interface ZAPageTabsBar() <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
 
-@property (strong, nonatomic) UICollectionView *collectionView;
 @property (strong, nonatomic) NSDictionary *cachedCellWidths;
 @property (strong, nonatomic) UIView *bView;
 
@@ -49,7 +48,7 @@
     layout.minimumLineSpacing = 0.f;
     layout.minimumInteritemSpacing = 0.f;
     
-    self.collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
+    self.collectionView = [[UICollectionView alloc] initWithFrame:self.barView.bounds collectionViewLayout:layout];
     self.collectionView.backgroundColor = [UIColor whiteColor];
     self.collectionView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.collectionView.showsHorizontalScrollIndicator = NO;
@@ -60,47 +59,27 @@
     self.bView = [UIView new];
     self.bView.backgroundColor = [Typography activeColor];
     self.bView.layer.zPosition = 9999;
-    [self.barView addSubview:self.bView];
+    
+    [self.collectionView addSubview:self.bView];
 }
 
 - (void)configure {
-    [self configureViews];    
+    [self configureViews];
     self.collectionView.dataSource = self;
     self.collectionView.delegate = self;
+    // ! collectionView.delegate set NOT HERE
     [self.collectionView registerClass:[ZAPageTabsCell class] forCellWithReuseIdentifier:@"Cell"];
 }
 
 #pragma mark - lazy
 
 - (void)setItems:(NSArray *)items iconNames:(NSArray *)names {    
-//    [self.collectionView performBatchUpdates:^{
         self.items = items;
         self.iconNames = names;
         [self calculateWidths];
-        [self.collectionView reloadData];
-//    } completion:^(BOOL finished) {
-        if (_selectedIndex >= items.count) {
-            self.selectedIndex = 0;
-        }
-        [self.collectionView selectItemAtIndexPath:[NSIndexPath indexPathForRow:_selectedIndex inSection:0]
-                                          animated:YES
-                                    scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
-//    }];
+        [self.collectionView reloadData]; // ?
 }
 
-- (void)setSelectedIndex:(NSUInteger)selectedIndex {
-    if (_selectedIndex != selectedIndex) {
-        _selectedIndex = selectedIndex;
-        [self.collectionView selectItemAtIndexPath:[NSIndexPath indexPathForRow:selectedIndex inSection:0]
-                                          animated:YES
-                                    scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self updateBottomView];
-        });
-    } else {
-        [self updateBottomView];
-    }
-}
 
 #pragma mark -
 
@@ -236,5 +215,111 @@
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     [self.delegate pageTabsBar:self didSelectItemAtIndex:indexPath.row];
 }
+
+#pragma mark - move
+
+- (void)moveToIndex:(NSInteger)toIndex {
+    _selectedIndex = toIndex;
+    [self updateSelectedBarPosition];
+}
+
+- (void)moveFromIndex:(NSInteger)fromIndex
+              toIndex:(NSInteger)toIndex
+           percentage:(CGFloat)percentage
+         indexChanged:(BOOL)indexChanged {
+    
+    
+    NSInteger numberOfItems = [self.collectionView numberOfItemsInSection:0];
+    
+    // calculate currentIndex
+    if (percentage > 0.5f) {
+        _selectedIndex = MAX(0, MIN(toIndex, numberOfItems - 1));
+    } else {
+        _selectedIndex = fromIndex;
+    }
+    
+    // calculate  fromFrame
+    NSIndexPath *fromIndexPath = [NSIndexPath indexPathForItem:fromIndex inSection:0];
+    CGRect fromFrame = [self.collectionView layoutAttributesForItemAtIndexPath:fromIndexPath].frame;
+    
+    // calculate toFrame
+    CGRect toFrame;
+    if (toIndex < 0 || toIndex > numberOfItems - 1) {
+        if (toIndex < 0) {
+            NSIndexPath *toIndexPath = [NSIndexPath indexPathForItem:0 inSection:0];
+            UICollectionViewLayoutAttributes *attr = [self.collectionView layoutAttributesForItemAtIndexPath:toIndexPath];
+            toFrame = CGRectOffset(attr.frame, -attr.frame.size.width, 0.f);
+        } else {
+            NSIndexPath *toIndexPath = [NSIndexPath indexPathForItem:(numberOfItems - 1) inSection:0];
+            UICollectionViewLayoutAttributes *attr = [self.collectionView layoutAttributesForItemAtIndexPath:toIndexPath];
+            toFrame = CGRectOffset(attr.frame, attr.frame.size.width, 0.f);
+        }
+    } else {
+        NSIndexPath *toIndexPath = [NSIndexPath indexPathForItem:toIndex inSection:0];
+        toFrame = [self.collectionView layoutAttributesForItemAtIndexPath:toIndexPath].frame;
+    }
+    
+    // calculate indicator frame
+    CGRect targetFrame = fromFrame;
+    
+    targetFrame.origin.x   += (toFrame.origin.x - fromFrame.origin.x) * percentage;
+    targetFrame.origin.y    = self.barView.frame.size.height - _bHeight;
+    targetFrame.size.width += (toFrame.size.width - fromFrame.size.width) * percentage;
+    targetFrame.size.height = _bHeight;
+    
+    self.bView.frame = targetFrame;
+    
+    // calculate scroll content offset
+    CGPoint targetOffset = CGPointZero;
+    
+    if (self.collectionView.contentSize.width > self.barView.frame.size.width) {
+        CGPoint toContentOffset     = [self contentOffsetForCellWithFrame:toFrame atIndex:toIndex];
+        CGPoint fromContentOffset   = [self contentOffsetForCellWithFrame:fromFrame atIndex:fromIndex];
+    
+        targetOffset = (CGPoint){
+            .x = fromContentOffset.x + (toContentOffset.x - fromContentOffset.x) * percentage,
+            .y = 0.f
+        };
+    }
+    
+    [self.collectionView setContentOffset:targetOffset animated:NO];
+}
+
+- (void)updateSelectedBarPosition {
+    CGRect selectedBarFrame = self.bView.frame;
+    
+    NSIndexPath *selectedIndexPath = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
+    UICollectionViewLayoutAttributes *attr = [self.collectionView layoutAttributesForItemAtIndexPath:selectedIndexPath];
+    CGRect selectedCellFrame = attr.frame;
+
+    [self updateContentOffsetToFrame:selectedCellFrame toIndex:_selectedIndex];
+    
+    selectedBarFrame.origin.x = selectedCellFrame.origin.x;
+    selectedBarFrame.size.width = selectedCellFrame.size.width;
+    
+    [UIView animateWithDuration:0.3f animations:^{
+        self.bView.frame = selectedBarFrame;
+    }];
+}
+
+
+- (void)updateContentOffsetToFrame:(CGRect)toFrame toIndex:(NSInteger)toIndex {
+    CGPoint targetOffset = CGPointZero;
+    if (self.collectionView.contentSize.width > self.collectionView.frame.size.width) {
+        targetOffset = [self contentOffsetForCellWithFrame:toFrame atIndex:toIndex];
+    }
+    [self.collectionView setContentOffset:targetOffset animated:YES];
+}
+
+
+- (CGPoint)contentOffsetForCellWithFrame:(CGRect)cellFrame atIndex:(NSInteger)index {
+    CGFloat alignOffset = (self.collectionView.frame.size.width - cellFrame.size.width) * 0.5f;
+    
+    CGFloat tempDx = MAX(0, cellFrame.origin.x - alignOffset);
+    CGFloat dx = MIN(tempDx, self.collectionView.contentSize.width - self.barView.frame.size.width);
+
+    return (CGPoint){dx, 0.f};
+}
+
 
 @end

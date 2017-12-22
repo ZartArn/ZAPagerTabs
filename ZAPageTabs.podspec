@@ -1,4 +1,4 @@
-root_path = "/Users/zartarn/rWorks/ZartArn"
+root_path = "/Users/zartarn/works/ZA"
 
 Pod::Spec.new do |s|
 
@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.author             = { "ZartArn" => "lewozart@gmail.com" }
 
   s.platform     = :ios, "9.0"
-  s.source       = { :path => "#{root_path}/MTabs/" }
+  s.source       = { :path => "#{root_path}/MTabs/ZAPagerTabs" }
   s.source_files  = "Source", "Source/**/*.{h,m}"  
   # s.public_header_files = "Classes/**/*.h"
 

@@ -8,6 +8,12 @@
 
 #import "ZAPageTabsViewController.h"
 
+typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
+    ZAPageTabsSwipeDirectionLeft,
+    ZAPageTabsSwipeDirectionRight,
+    ZAPageTabsSwipeDirectionNone
+};
+
 #define TABBAR_HEIGHT 44.f
 
 @interface ZAPageTabsViewController ()
@@ -15,8 +21,12 @@
 @property (strong, nonatomic) UIScrollView *containerView;
 @property (strong, nonatomic) ZAPageTabsBar *pageTabBar;
 
-@property (nonatomic) CGSize lastContentSize;
+@property (nonatomic) CGSize lastSize;
 @property (nonatomic) CGFloat lastOffsetX;
+@property (nonatomic) NSUInteger preSelectedIndex;
+
+@property (nonatomic) ZAPageTabsSwipeDirectionType swipeDirection;
+@property (strong, nonatomic) NSArray *tempViewControllersForJumping;
 
 @end
 
@@ -35,10 +45,6 @@
 
 - (void)loadView {
     
-    self.automaticallyAdjustsScrollViewInsets = NO;
-    
-
-    
     CGRect rect;
     rect = [UIScreen mainScreen].bounds;
     
@@ -48,6 +54,7 @@
     // tab bar
     [self.pageTabBar configure];
     self.pageTabBar.delegate = self;
+    
     CGRect barRect = (CGRect){.size = (CGSize){aView.bounds.size.width, TABBAR_HEIGHT}};
     self.pageTabBar.barView.frame = barRect;
     self.pageTabBar.barView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -71,12 +78,24 @@
     _containerView.backgroundColor = [UIColor whiteColor];
     [aView addSubview:_containerView];
 
+    if ([self.containerView respondsToSelector:@selector(contentInsetAdjustmentBehavior)]) {
+        [self.containerView performSelector:@selector(contentInsetAdjustmentBehavior) withObject:@(2)];
+    } else {
+        self.automaticallyAdjustsScrollViewInsets = NO;
+    }
+
+/*
     if (@available(iOS 11.0, *)) {
         self.containerView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     } else {
         // Fallback on earlier versions
+        self.automaticallyAdjustsScrollViewInsets = NO;
     }
     _selectedIndex = 0;
+*/
+    // other configure
+    _selectedIndex = 0;
+    _preSelectedIndex = 0;
 }
 
 - (void)viewDidLoad {
@@ -90,12 +109,18 @@
         toController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         [self.containerView addSubview:toController.view];
         [toController didMoveToParentViewController:self];
-//        self.selectedIndex = 0;
     }
     
+    // tab bar
     NSArray *items = [self.viewControllers valueForKeyPath:@"title"];
     [self.pageTabBar setItems:items iconNames:self.iconNames];;
     
+    // other
+    _lastSize = CGSizeZero;
+    _lastOffsetX = 0;
+    
+    NSIndexPath *path = [NSIndexPath indexPathForItem:0 inSection:0];
+    [self.pageTabBar.collectionView selectItemAtIndexPath:path animated:YES scrollPosition:UICollectionViewScrollPositionNone];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -105,7 +130,9 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self.pageTabBar updateBottomView];
+    if (_selectedIndex != _preSelectedIndex) { // ?
+        [self moveToViewControllerAtIndex:_preSelectedIndex];
+    }
 }
 
 - (void)viewDidLayoutSubviews {
@@ -113,17 +140,23 @@
     [self updateIfNeeded];
 }
 
+#pragma mark - upadate
 
+- (void)updateIfNeeded {
+    if (self.isViewLoaded && !CGSizeEqualToSize(_lastSize, _containerView.bounds.size)) {
+        [self updateContent];
+    }
+}
 
 - (void)updateContent {
     
-    if (_lastContentSize.width != _containerView.bounds.size.width) {
+    if (_lastSize.width != _containerView.bounds.size.width) {
         self.containerView.contentOffset = (CGPoint){.x = [self pageOffsetForChildAtIndex:_selectedIndex], .y = 0.f};
     }
-    self.lastContentSize = self.containerView.bounds.size;
+    _lastSize = self.containerView.bounds.size;
     
 
-    NSArray *pagerControllers = self.viewControllers;
+    NSArray *pagerControllers = self.tempViewControllersForJumping ?: self.viewControllers;
     self.containerView.contentSize = (CGSize){
         .width = _containerView.bounds.size.width * pagerControllers.count,
         .height = _containerView.bounds.size.height
@@ -156,33 +189,93 @@
     }];
     
     // --
-//    NSInteger currentIndex = _selectedIndex;
-//    NSInteger virtualPage = [self virtualPageForContentOffset:self.containerView.contentOffset.x];
-//    NSInteger newCurrentIndex = [self pageForVirtualPage:virtualPage];
-//
-//    BOOL changeCurrentIndex = newCurrentIndex != currentIndex;
+    NSInteger oldIndex = _selectedIndex;
     
+    NSInteger virtualPage = [self virtualPageForContentOffset:self.containerView.contentOffset.x];
+    NSInteger newIndex   = [self pageForVirtualPage:virtualPage];
     
-/*
-    BOOL swipeLeftDisrection = self.containerView.contentOffset.x > _lastOffsetX;
-    _lastOffsetX = self.containerView.contentOffset.x;
+    BOOL indexChanged = oldIndex != newIndex;
+    _selectedIndex = _preSelectedIndex = newIndex;
     
-    CGFloat percent = [self scrollPercentage:swipeLeftDisrection];
-    [self.pageTabBar updatePercentage:percent];
-*/
- 
-//    currentIndex = newCurrentIndex
-//    preCurrentIndex = currentIndex
-//    let changeCurrentIndex = newCurrentIndex != oldCurrentIndex
+    [self prepareAndUpdateIndicator:virtualPage indexChanged:indexChanged];
+    if (indexChanged) {
+        NSIndexPath *path = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
+        [self.pageTabBar.collectionView selectItemAtIndexPath:path animated:YES scrollPosition:UICollectionViewScrollPositionNone];
+    }
+}
+
+- (void)prepareAndUpdateIndicator:(NSInteger)virtualPage
+                     indexChanged:(BOOL)indexChanged {
     
-//    if let progressiveDeledate = self as? PagerTabStripIsProgressiveDelegate, pagerBehaviour.isProgressiveIndicator {
-//        
-//        let (fromIndex, toIndex, scrollPercentage) = progressiveIndicatorData(virtualPage)
-//        progressiveDeledate.updateIndicator(for: self, fromIndex: fromIndex, toIndex: toIndex, withProgressPercentage: scrollPercentage, indexWasChanged: changeCurrentIndex)
-//    } else {
-//        delegate?.updateIndicator(for: self, fromIndex: min(oldCurrentIndex, pagerViewControllers.count - 1), toIndex: newCurrentIndex)
-//    }
+    NSInteger cnt = (NSInteger)self.viewControllers.count;
+    NSInteger fromIdx = _selectedIndex;
+    NSInteger toIdx = _selectedIndex;
+    CGFloat percentage = [self scrollPercentage];
     
+    ZAPageTabsSwipeDirectionType swipeDirection = self.swipeDirection;
+    
+    if (swipeDirection == ZAPageTabsSwipeDirectionLeft) {
+        if (virtualPage > cnt - 1) {
+            fromIdx = cnt - 1;
+            toIdx = cnt;
+        } else {
+            if (percentage >= 0.5f) {
+                fromIdx = MAX(toIdx - 1, 0);
+            } else {
+                toIdx = fromIdx + 1;
+            }
+        }
+    } else if (swipeDirection == ZAPageTabsSwipeDirectionRight) {
+        if (virtualPage < 0) {
+            fromIdx = 0;
+            toIdx = -1;
+        } else {
+            if (percentage > 0.5f) {
+                fromIdx = MIN(toIdx + 1, cnt - 1);
+            } else {
+                toIdx = fromIdx - 1;
+            }
+        }
+    }
+
+    [self updateIndicatorFromIndex:fromIdx
+                           toIndex:toIdx
+                progressPercentage:percentage
+                      indexChanged:indexChanged];
+}
+
+- (void)updateIndicatorFromIndex:(NSInteger)fromIndex
+                         toIndex:(NSInteger)toIndex
+              progressPercentage:(CGFloat)percentage
+                    indexChanged:(BOOL)indexChanged {
+    
+    [self.pageTabBar moveFromIndex:fromIndex toIndex:toIndex percentage:percentage indexChanged:indexChanged];
+}
+
+#pragma mark - moveTo
+
+- (void)moveToViewControllerAtIndex:(NSInteger)toIndex {
+    
+    if (!self.isViewLoaded || self.view.window == nil || _selectedIndex == toIndex) {
+        return;
+    }
+    
+    if (labs(_selectedIndex - toIndex) > 1) {
+        
+        NSMutableArray *tmpViewControllers = [self.viewControllers mutableCopy];
+        NSInteger fromIndex = _selectedIndex < toIndex ? toIndex - 1 : toIndex + 1;
+        [tmpViewControllers exchangeObjectAtIndex:fromIndex withObjectAtIndex:_selectedIndex];
+        self.tempViewControllersForJumping = [tmpViewControllers copy];
+
+        CGPoint offsetA = (CGPoint){[self pageOffsetForChildAtIndex:fromIndex], 0};
+        [self.containerView setContentOffset:offsetA animated:NO];
+        CGPoint offsetB = (CGPoint){[self pageOffsetForChildAtIndex:toIndex], 0};
+        [self.containerView setContentOffset:offsetB animated:YES];
+        
+    } else {
+        CGPoint offset = (CGPoint){[self pageOffsetForChildAtIndex:toIndex], 0};
+        [self.containerView setContentOffset:offset animated:YES];
+    }
 }
 
 #pragma mark - UIScrollViewDelegate
@@ -190,31 +283,26 @@
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (_containerView == scrollView) {
         [self updateContent];
+        _lastOffsetX = scrollView.contentOffset.x;
     }
 }
 
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-    CGPoint center = (CGPoint){scrollView.contentOffset.x + (scrollView.frame.size.width / 2), (scrollView.frame.size.height / 2)};
-    NSInteger pageIdx = center.x / _containerView.bounds.size.width;
-    self.selectedIndex = pageIdx;
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    if (_containerView == scrollView) {
+        self.tempViewControllersForJumping = nil;
+        [self updateContent];
+    }
 }
+
 
 #pragma mark - ZAPageTabsBarDelegate
 
 - (void)pageTabsBar:(ZAPageTabsBar *)pageTabsBar didSelectItemAtIndex:(NSUInteger)index {
-    CGFloat offset = [self pageOffsetForChildAtIndex:index];
-    [self.containerView setContentOffset:(CGPoint){offset, 0} animated:YES];
-    self.selectedIndex = index;
-    [self updateContent];
+    [self.pageTabBar moveToIndex:index];
+    [self moveToViewControllerAtIndex:index];
 }
 
 #pragma mark - helpers
-
-- (void)updateIfNeeded {
-    if (self.isViewLoaded && !CGSizeEqualToSize(_lastContentSize, _containerView.bounds.size)) {
-        [self updateContent];
-    }
-}
 
 - (CGFloat)pageOffsetForChildAtIndex:(NSInteger)index {
     return ((float)index * _containerView.bounds.size.width);
@@ -235,27 +323,33 @@
     return virtualPage;
 }
 
-- (CGFloat)scrollPercentage:(BOOL)isLeftDirection {
+- (CGFloat)scrollPercentage {
     CGFloat pageWidth = self.containerView.bounds.size.width;
-    NSInteger i = ((int)floorf(self.containerView.contentOffset.x) % (int)floorf(pageWidth));
-    if (isLeftDirection) {
-        CGFloat percent = i == 0 ? 1.f : i / pageWidth;
-        NSLog(@"percent :: %@", @(percent));
-        return percent;
-    } else {
-        CGFloat percent = i / pageWidth;
-        NSLog(@"percent :: %@", @(percent));
-        return percent;
+    
+    if (self.swipeDirection != ZAPageTabsSwipeDirectionRight) {
+        CGFloat mod = fmod(self.containerView.contentOffset.x, pageWidth);
+        return mod == 0.0f ? 1.0f : (mod / pageWidth);
     }
+
+    CGFloat mod = 0.f;
+    if (self.containerView.contentOffset.x > 0.f) {
+        mod = fmod(self.containerView.contentOffset.x, pageWidth);
+    } else {
+        mod = fmod(self.containerView.contentOffset.x + pageWidth, pageWidth);
+    }
+    return (1.f - (mod / pageWidth));
 }
 
 #pragma mark - lazy
 
-- (void)setSelectedIndex:(NSUInteger)selectedIndex {
-//    if (_selectedIndex != selectedIndex) {
-        _selectedIndex = selectedIndex;
-        self.pageTabBar.selectedIndex = selectedIndex;
-//    }
+- (ZAPageTabsSwipeDirectionType)swipeDirection {
+    if (self.containerView.contentOffset.x > _lastOffsetX) {
+        return ZAPageTabsSwipeDirectionLeft;
+    }
+    if (self.containerView.contentOffset.x < _lastOffsetX) {
+        return ZAPageTabsSwipeDirectionRight;
+    }
+    return ZAPageTabsSwipeDirectionNone;
 }
 
 @end

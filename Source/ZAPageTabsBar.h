@@ -12,23 +12,30 @@
 
 @interface ZAPageTabsBar : NSObject
 
+@property (strong, nonatomic) UICollectionView *collectionView;
 @property (strong, nonatomic) UIView *barView;
 @property (strong, nonatomic) NSArray *items;
 @property (strong, nonatomic) NSArray *iconNames;
 
-@property (nonatomic) NSUInteger selectedIndex;
 @property (weak, nonatomic) id<ZAPageTabsBarDelegate> delegate;
+
+@property (nonatomic) NSUInteger selectedIndex;
 
 - (void)setItems:(NSArray *)items iconNames:(NSArray *)names;
 
 
 - (void)configure;
 
-- (void)updateBottomView;
 
-- (void)updatePercentage:(CGFloat)percent;
+- (void)moveToIndex:(NSInteger)toIndex;
+
+- (void)moveFromIndex:(NSInteger)fromIndex
+              toIndex:(NSInteger)toIndex
+           percentage:(CGFloat)percentage
+         indexChanged:(BOOL)indexChanged;
 
 @end
+
 
 
 

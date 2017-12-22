@@ -21,9 +21,9 @@
 @property (strong, nonatomic) NSArray *iconNames;
 
 /// currently selected view controller
-@property (assign, nonatomic) UIViewController *selectedViewController;
+//@property (assign, nonatomic) UIViewController *selectedViewController;
 
 /// currently selected index
-@property (nonatomic) NSUInteger selectedIndex;
+@property (nonatomic) NSInteger selectedIndex;
 
 @end
