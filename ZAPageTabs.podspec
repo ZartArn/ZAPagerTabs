@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.author             = { "ZartArn" => "lewozart@gmail.com" }
 
   s.platform     = :ios, "9.0"
-  s.source       = { :git => 'https://github.com/ZAPagerTabs.git' }
+  s.source       = { :git => 'https://github.com/ZartArn/ZAPagerTabs.git' }
   s.source_files  = 'Source', 'Source/**/*.{h,m}'
   # s.public_header_files = "Classes/**/*.h"
 
