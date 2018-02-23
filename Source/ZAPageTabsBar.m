@@ -111,58 +111,7 @@
         [cached setObject:@(w) forKey:[NSIndexPath indexPathForRow:idx inSection:0]];
     }];
     self.cachedCellWidths = [cached copy];
-    NSLog(@"%@", self.cachedCellWidths);
-}
-
-#pragma mark - bottomView
-
-- (void)updateBottomView {
-    NSLog(@"%s", __FUNCTION__);
-    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
-    UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
-    
-    CGRect rect = [cell.superview convertRect:cell.frame toView:self.barView];
-    
-    CGRect newRect;
-    if (cell) {
-        newRect = (CGRect){
-                                        rect.origin.x,
-                                        self.barView.bounds.size.height - _bHeight,
-                                        rect.size.width,
-                                        _bHeight
-                                    };
-    } else {
-        newRect = CGRectZero;
-    }
-//    NSLog(@"%@", NSStringFromCGRect(newRect));
-    
-    [UIView animateWithDuration:0.3f animations:^{
-        self.bView.frame = newRect;
-    }];
-}
-
-- (void)updatePercentage:(CGFloat)percent {
-    NSLog(@"%s", __FUNCTION__);
-    NSInteger nextIdx = MIN(self.items.count - 1, (_selectedIndex + 1));
-    NSIndexPath *currentIndexPath = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
-    NSIndexPath *nextIndexPath = [NSIndexPath indexPathForItem:nextIdx inSection:0];
-    
-    UICollectionViewCell *currentCell = [self.collectionView cellForItemAtIndexPath:currentIndexPath];
-    CGRect rect = [currentCell.superview convertRect:currentCell.frame toView:self.barView];
-//    UICollectionViewCell *nextCell = [self.collectionView cellForItemAtIndexPath:nextIndexPath];
-    
-    CGFloat nextWidth = [[self.cachedCellWidths objectForKey:nextIndexPath] floatValue];
-    CGFloat dx = nextWidth * percent;
-
-    CGRect newRect = (CGRect){
-        rect.origin.x,
-        self.barView.bounds.size.height - _bHeight,
-        rect.size.width + dx,
-        _bHeight
-    };
-//    NSLog(@"%@", NSStringFromCGRect(newRect));
-    
-    self.bView.frame = newRect;
+//    NSLog(@"%@", self.cachedCellWidths);
 }
 
 #pragma mark - UICollectionViewDataSource
@@ -220,7 +169,7 @@
 
 - (void)moveToIndex:(NSInteger)toIndex {
     _selectedIndex = toIndex;
-    [self updateSelectedBarPosition];
+    [self updateSelectedBarPositionToIndex:toIndex];
 }
 
 - (void)moveFromIndex:(NSInteger)fromIndex
@@ -228,14 +177,14 @@
            percentage:(CGFloat)percentage
          indexChanged:(BOOL)indexChanged {
     
+//    NSLog(@"%@ :: %@", @(fromIndex), @(toIndex));
     
     NSInteger numberOfItems = [self.collectionView numberOfItemsInSection:0];
     
-    // calculate currentIndex
-    if (percentage > 0.5f) {
-        _selectedIndex = MAX(0, MIN(toIndex, numberOfItems - 1));
-    } else {
-        _selectedIndex = fromIndex;
+    if (indexChanged) {
+        _selectedIndex = toIndex;
+        NSIndexPath *path = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
+        [self.collectionView selectItemAtIndexPath:path animated:NO scrollPosition:UICollectionViewScrollPositionNone];
     }
     
     // calculate  fromFrame
@@ -285,10 +234,11 @@
     [self.collectionView setContentOffset:targetOffset animated:NO];
 }
 
-- (void)updateSelectedBarPosition {
+- (void)updateSelectedBarPositionToIndex:(NSInteger)toIndex {
     CGRect selectedBarFrame = self.bView.frame;
     
-    NSIndexPath *selectedIndexPath = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
+//    NSIndexPath *selectedIndexPath = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
+    NSIndexPath *selectedIndexPath = [NSIndexPath indexPathForItem:toIndex inSection:0];
     UICollectionViewLayoutAttributes *attr = [self.collectionView layoutAttributesForItemAtIndexPath:selectedIndexPath];
     CGRect selectedCellFrame = attr.frame;
 

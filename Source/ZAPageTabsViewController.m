@@ -24,6 +24,7 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
 @property (nonatomic) CGSize lastSize;
 @property (nonatomic) CGFloat lastOffsetX;
 @property (nonatomic) NSUInteger preSelectedIndex;
+@property (nonatomic) BOOL shouldUpdateIndicator;
 
 @property (nonatomic) ZAPageTabsSwipeDirectionType swipeDirection;
 @property (strong, nonatomic) NSArray *tempViewControllersForJumping;
@@ -84,18 +85,10 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
         self.automaticallyAdjustsScrollViewInsets = NO;
     }
 
-/*
-    if (@available(iOS 11.0, *)) {
-        self.containerView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
-    } else {
-        // Fallback on earlier versions
-        self.automaticallyAdjustsScrollViewInsets = NO;
-    }
-    _selectedIndex = 0;
-*/
     // other configure
     _selectedIndex = 0;
     _preSelectedIndex = 0;
+    _shouldUpdateIndicator = YES;
 }
 
 - (void)viewDidLoad {
@@ -155,7 +148,6 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     }
     _lastSize = self.containerView.bounds.size;
     
-
     NSArray *pagerControllers = self.tempViewControllersForJumping ?: self.viewControllers;
     self.containerView.contentSize = (CGSize){
         .width = _containerView.bounds.size.width * pagerControllers.count,
@@ -192,15 +184,13 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     NSInteger oldIndex = _selectedIndex;
     
     NSInteger virtualPage = [self virtualPageForContentOffset:self.containerView.contentOffset.x];
-    NSInteger newIndex   = [self pageForVirtualPage:virtualPage];
+    NSInteger newIndex   = [self pageForVirtualPage:virtualPage]; // in bounds
     
     BOOL indexChanged = oldIndex != newIndex;
     _selectedIndex = _preSelectedIndex = newIndex;
     
-    [self prepareAndUpdateIndicator:virtualPage indexChanged:indexChanged];
-    if (indexChanged) {
-        NSIndexPath *path = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
-        [self.pageTabBar.collectionView selectItemAtIndexPath:path animated:YES scrollPosition:UICollectionViewScrollPositionNone];
+    if (_shouldUpdateIndicator) {
+        [self prepareAndUpdateIndicator:virtualPage indexChanged:indexChanged];
     }
 }
 
@@ -260,6 +250,7 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
         return;
     }
     
+    _shouldUpdateIndicator = NO;
     if (labs(_selectedIndex - toIndex) > 1) {
         
         NSMutableArray *tmpViewControllers = [self.viewControllers mutableCopy];
@@ -291,15 +282,15 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     if (_containerView == scrollView) {
         self.tempViewControllersForJumping = nil;
         [self updateContent];
+        _shouldUpdateIndicator = YES;
     }
 }
-
 
 #pragma mark - ZAPageTabsBarDelegate
 
 - (void)pageTabsBar:(ZAPageTabsBar *)pageTabsBar didSelectItemAtIndex:(NSUInteger)index {
-    [self.pageTabBar moveToIndex:index];
     [self moveToViewControllerAtIndex:index];
+    [self.pageTabBar moveToIndex:index];
 }
 
 #pragma mark - helpers
@@ -323,7 +314,7 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     return virtualPage;
 }
 
-- (CGFloat)scrollPercentage {
+- (CGFloat) scrollPercentage {
     CGFloat pageWidth = self.containerView.bounds.size.width;
     
     if (self.swipeDirection != ZAPageTabsSwipeDirectionRight) {
