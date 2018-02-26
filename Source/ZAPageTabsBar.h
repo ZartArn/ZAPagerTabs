@@ -28,7 +28,7 @@
 @property (strong, nonatomic) UIColor *selectedColor;
 
 /// page tabbar cell class if needed
-@property (strong, nonatomic) Class cellClass;
+@property (nonatomic) Class cellClass;
 
 @end
 
