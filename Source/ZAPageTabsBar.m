@@ -7,20 +7,26 @@
 
 #import "ZAPageTabsBar.h"
 #import "ZAPageTabsCell.h"
-#import "Typography.h"
-#import "StyleHelper.h"
 
 #define TITLE_INSETS (UIEdgeInsets){0.f, 5.f, 0.f, 5.f}
+#define MIN_WIDTH 50.f
+
+@implementation ZAPageTabsBarStyle
+@end
+
+@implementation ZAPageTabIndicatorInfo
+@end
+
 
 @interface ZAPageTabsBar() <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
 
 @property (strong, nonatomic) NSDictionary *cachedCellWidths;
-@property (strong, nonatomic) UIView *bView;
+@property (strong, nonatomic) UIView *indicatorView;
 
 @property (strong, nonatomic) UIColor *normalColor;
 @property (strong, nonatomic) UIColor *activeColor;
 
-@property (nonatomic) CGFloat bHeight;
+@property (nonatomic) CGFloat indicatorHeight;
 
 @end
 
@@ -32,12 +38,38 @@
     return self;
 }
 
-- (void)configureViews {
+- (ZAPageTabsBarStyle *)defaultStyle {
     
-    // style
-    _bHeight = 1.5f;
-    self.normalColor = [Typography mainColor];
-    self.activeColor = [Typography activeColor];
+    ZAPageTabsBarStyle *style = [ZAPageTabsBarStyle new];
+    
+    style.backgroundColor   = [UIColor whiteColor];
+    style.indicatorHeight   = 1.5f;
+    style.indicatorColor    = self.collectionView.tintColor;
+    style.normalColor       = [UIColor blackColor];
+    style.selectedColor     = [UIColor blackColor];
+    
+    return style;
+}
+
+- (void)applyStyle:(ZAPageTabsBarStyle *)style {
+    
+    // background color
+    self.collectionView.backgroundColor = style.backgroundColor ?: [UIColor whiteColor];
+    
+    // indicator height
+    _indicatorHeight = style.indicatorHeight > 0 ?: 1.5f;
+    
+    // indicator color
+    self.indicatorView.backgroundColor = style.indicatorColor ?: self.collectionView.tintColor;
+    
+    // text normal color
+    self.normalColor = style.normalColor ?: [UIColor blackColor];
+    
+    // text selected color
+    self.activeColor = style.selectedColor ?: [UIColor blackColor];
+}
+
+- (void)configureViews {
     
     // bar
     self.barView = [UIView new];
@@ -49,18 +81,24 @@
     layout.minimumInteritemSpacing = 0.f;
     
     self.collectionView = [[UICollectionView alloc] initWithFrame:self.barView.bounds collectionViewLayout:layout];
-    self.collectionView.backgroundColor = [UIColor whiteColor];
     self.collectionView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.collectionView.showsHorizontalScrollIndicator = NO;
     
     [self.barView addSubview:self.collectionView];
 
     // bottom view
-    self.bView = [UIView new];
-    self.bView.backgroundColor = [Typography activeColor];
-    self.bView.layer.zPosition = 9999;
+    self.indicatorView = [UIView new];
+    self.indicatorView.backgroundColor = self.indicatorView.tintColor;
+    self.indicatorView.layer.zPosition = 9999;
     
-    [self.collectionView addSubview:self.bView];
+    [self.collectionView addSubview:self.indicatorView];
+    
+    // style
+    if (self.style) {
+        [self applyStyle:self.style];
+    } else {
+        [self applyStyle:[self defaultStyle]];
+    }
 }
 
 - (void)configure {
@@ -68,39 +106,55 @@
     self.collectionView.dataSource = self;
     self.collectionView.delegate = self;
     // ! collectionView.delegate set NOT HERE
-    [self.collectionView registerClass:[ZAPageTabsCell class] forCellWithReuseIdentifier:@"Cell"];
+    if (self.style.cellClass) {
+        [self.collectionView registerClass:self.style.cellClass forCellWithReuseIdentifier:@"Cell"];
+    } else {
+        [self.collectionView registerClass:[ZAPageTabsCell class] forCellWithReuseIdentifier:@"Cell"];
+    }
 }
 
 #pragma mark - lazy
 
-- (void)setItems:(NSArray *)items iconNames:(NSArray *)names {    
-        self.items = items;
-        self.iconNames = names;
+- (void)setItems:(NSArray *)items {
+        _items = items;
         [self calculateWidths];
         [self.collectionView reloadData]; // ?
 }
-
 
 #pragma mark -
 
 - (void)calculateWidths {
     NSMutableDictionary *cached = [NSMutableDictionary dictionaryWithCapacity:self.items.count];
     
-    ZAPageTabsCell *tmpCell = [[ZAPageTabsCell alloc] initWithFrame:CGRectZero];
+    UICollectionViewCell <ZAPageTabsCellProtocol> *tmpCell;
+    if (self.style.cellClass) {
+        tmpCell = [[self.style.cellClass alloc] initWithFrame:CGRectZero];
+    } else {
+        tmpCell = [[ZAPageTabsCell alloc] initWithFrame:CGRectZero];
+    }
     UIFont *titleFont = tmpCell.titleLabel.font;
     
-    [self.items enumerateObjectsUsingBlock:^(NSString *title, NSUInteger idx, BOOL * _Nonnull stop) {
+    [self.items enumerateObjectsUsingBlock:^(ZAPageTabIndicatorInfo *indicatorInfo, NSUInteger idx, BOOL * _Nonnull stop) {
+        CGFloat wordWidth;
         
-        NSAttributedString *ss =[[NSAttributedString alloc] initWithString:title
-                                                                attributes: @{
-                                                                              NSFontAttributeName : titleFont
-                                                                              }];
+        if (indicatorInfo.title == nil) {
+            
+            wordWidth = MIN_WIDTH;
+            
+        } else {
         
-        CGRect titleRect = [ss boundingRectWithSize:(CGSize){CGFLOAT_MAX, 44.f}
-                                               options:NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin
-                                               context:nil];
+            NSAttributedString *ss =[[NSAttributedString alloc] initWithString:indicatorInfo.title
+                                                                    attributes: @{
+                                                                                  NSFontAttributeName : titleFont
+                                                                                  }];
+            
+            CGRect titleRect = [ss boundingRectWithSize:(CGSize){CGFLOAT_MAX, 44.f}
+                                                options:NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin
+                                                context:nil];
+            wordWidth = titleRect.size.width;
+        }
         
-        double w = ceil(titleRect.size.width) + TITLE_INSETS.left + TITLE_INSETS.right;
+        double w = ceil(wordWidth) + TITLE_INSETS.left + TITLE_INSETS.right;
         [cached setObject:@(w) forKey:[NSIndexPath indexPathForRow:idx inSection:0]];
     }];
     
@@ -121,15 +175,13 @@
 }
 
 - (void)configureCell:(UICollectionViewCell *)aCell forIndexPath:(NSIndexPath *)indexPath {
-    NSAssert([aCell isKindOfClass:[ZAPageTabsCell class]], @"cell must be subclass of ZAPageTabsCell class");
-    ZAPageTabsCell *cell = (ZAPageTabsCell *)aCell;
+    NSAssert([aCell conformsToProtocol:@protocol(ZAPageTabsCellProtocol)], @"cell must confirm protocol ZAPageTabsCellProtocol");
+    UICollectionViewCell<ZAPageTabsCellProtocol> *cell = (UICollectionViewCell<ZAPageTabsCellProtocol> *)aCell;
     
-    NSString *title = [self.items objectAtIndex:indexPath.row];
-    NSString *icon = [self.iconNames objectAtIndex:indexPath.row];
-    cell.titleLabel.text = title;
-    cell.icon.highlightedImage = [StyleHelper loadImage:icon];
-    cell.icon.image = nil;
-    
+    ZAPageTabIndicatorInfo *indicatorInfo = [self.items objectAtIndex:indexPath.row];
+    cell.titleLabel.text        = indicatorInfo.title;
+    cell.icon.highlightedImage  = indicatorInfo.selectedImage;
+    cell.icon.image             = indicatorInfo.image;
 }
 
 #pragma mark - UICollectionViewDelegateFlowLayout
@@ -164,6 +216,18 @@
 }
 
 #pragma mark - UICollectionViewDelegate
+
+- (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(UICollectionViewCell *)aCell forItemAtIndexPath:(NSIndexPath *)indexPath {
+    NSLog(@"will display cell :: %@", indexPath);
+    
+    NSAssert([aCell conformsToProtocol:@protocol(ZAPageTabsCellProtocol)], @"cell must confirm protocol ZAPageTabsCellProtocol");
+    UICollectionViewCell<ZAPageTabsCellProtocol> *cell = (UICollectionViewCell<ZAPageTabsCellProtocol> *)aCell;
+
+    if (!self.style.cellClass) {
+        cell.titleLabel.textColor = self.normalColor;
+        cell.titleLabel.highlightedTextColor = self.activeColor;
+    }
+}
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     [self.delegate pageTabsBar:self didSelectItemAtIndex:indexPath.row];
@@ -216,11 +280,11 @@
     CGRect targetFrame = fromFrame;
     
     targetFrame.origin.x   += (toFrame.origin.x - fromFrame.origin.x) * percentage;
-    targetFrame.origin.y    = self.barView.frame.size.height - _bHeight;
+    targetFrame.origin.y    = self.barView.frame.size.height - _indicatorHeight;
     targetFrame.size.width += (toFrame.size.width - fromFrame.size.width) * percentage;
-    targetFrame.size.height = _bHeight;
+    targetFrame.size.height = _indicatorHeight;
     
-    self.bView.frame = targetFrame;
+    self.indicatorView.frame = targetFrame;
     
     // calculate scroll content offset
     CGPoint targetOffset = CGPointZero;
@@ -239,9 +303,8 @@
 }
 
 - (void)updateSelectedBarPositionToIndex:(NSInteger)toIndex {
-    CGRect selectedBarFrame = self.bView.frame;
+    CGRect selectedBarFrame = self.indicatorView.frame;
     
-//    NSIndexPath *selectedIndexPath = [NSIndexPath indexPathForItem:_selectedIndex inSection:0];
     NSIndexPath *selectedIndexPath = [NSIndexPath indexPathForItem:toIndex inSection:0];
     UICollectionViewLayoutAttributes *attr = [self.collectionView layoutAttributesForItemAtIndexPath:selectedIndexPath];
     CGRect selectedCellFrame = attr.frame;
@@ -252,7 +315,7 @@
     selectedBarFrame.size.width = selectedCellFrame.size.width;
     
     [UIView animateWithDuration:0.3f animations:^{
-        self.bView.frame = selectedBarFrame;
+        self.indicatorView.frame = selectedBarFrame;
     }];
 }
 

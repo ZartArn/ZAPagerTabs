@@ -20,18 +20,26 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     
-    ZAPageTabsViewController *rootVC = [[ZAPageTabsViewController alloc] init];
+    ZAPageTabsBarStyle *style = [ZAPageTabsBarStyle new];
+    style.backgroundColor   = [UIColor colorWithRed:0.56 green:0.75 blue:0 alpha:1];
+    style.indicatorHeight   = 2.f;
+    style.indicatorColor    = [UIColor colorWithRed:0.25 green:0.4 blue:0.04 alpha:1];
+    style.selectedColor     = [UIColor whiteColor];
+    style.normalColor       = [UIColor colorWithRed:1. green:1 blue:1 alpha:0.8];
+
+    
+    ZAPageTabsViewController *rootVC = [[ZAPageTabsViewController alloc] initWithStyle:style];
     ViewController *v1 = [[ViewController alloc] initWithItemsCount:30];
     ViewController *v2 = [[ViewController alloc] initWithItemsCount:5];
     ViewController *v3 = [[ViewController alloc] initWithItemsCount:21];
     ViewController *v4 = [[ViewController alloc] initWithItemsCount:8];
     
-    v1.title = @"Title-Title";
-    v2.title = @"Short";
-    v4.title = @"Bumbarash-Bum";
-    v3.title = @"Abrakadabra-Da-Da";
+    v1.title = @"Title";
+    v2.title = @"Star Track";
+    v4.title = @"Bumbarash";
+    v3.title = @"Abraka";
     
-    rootVC.viewControllers = @[v1, v2, v3, v4];
+    rootVC.viewControllers = @[v1, v4, v2, v3];
     
     // window
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];

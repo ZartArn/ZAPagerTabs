@@ -14,8 +14,6 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     ZAPageTabsSwipeDirectionNone
 };
 
-#define TABBAR_HEIGHT 44.f
-
 @interface ZAPageTabsViewController ()
 
 @property (strong, nonatomic) UIScrollView *containerView;
@@ -38,8 +36,24 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     if (self = [super init]) {
         // tab bar
         self.pageTabBar = [[ZAPageTabsBar alloc] init];
+        [self defaultConfigure];
     }
     return self;
+}
+
+- (instancetype)initWithStyle:(ZAPageTabsBarStyle *)style {
+    if (self = [super init]) {
+        // tab bar
+        self.pageTabBar = [[ZAPageTabsBar alloc] init];
+        [self defaultConfigure];
+        self.pageTabBar.style = style;
+    }
+    return self;
+}
+
+- (void)defaultConfigure {
+    // tabbar height
+    _barHeight = 44.f;
 }
 
 #pragma mark - life cycle
@@ -56,13 +70,13 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     [self.pageTabBar configure];
     self.pageTabBar.delegate = self;
     
-    CGRect barRect = (CGRect){.size = (CGSize){aView.bounds.size.width, TABBAR_HEIGHT}};
+    CGRect barRect = (CGRect){.size = (CGSize){aView.bounds.size.width, _barHeight}};
     self.pageTabBar.barView.frame = barRect;
     self.pageTabBar.barView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [aView addSubview:self.pageTabBar.barView];
     
     // container
-    CGRect containerRect = (CGRect){0.f, TABBAR_HEIGHT, aView.bounds.size.width, aView.bounds.size.height - TABBAR_HEIGHT};
+    CGRect containerRect = (CGRect){0.f, _barHeight, aView.bounds.size.width, aView.bounds.size.height - _barHeight};
     self.containerView = [[UIScrollView alloc] initWithFrame:containerRect];
     _containerView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     
@@ -105,8 +119,19 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     }
     
     // tab bar
-    NSArray *items = [self.viewControllers valueForKeyPath:@"title"];
-    [self.pageTabBar setItems:items iconNames:self.iconNames];;
+    if (self.infoItems && self.infoItems.count == self.viewControllers.count) {
+        self.pageTabBar.items = self.infoItems;
+    } else {
+        NSArray *titles = [self.viewControllers valueForKeyPath:@"title"];
+        NSMutableArray *infoItems = [NSMutableArray array];
+        
+        for (NSInteger i = 0; i < self.viewControllers.count; i++) {
+            ZAPageTabIndicatorInfo *info = [ZAPageTabIndicatorInfo new];
+            info.title = [titles[i] isEqual:[NSNull null]] ? nil : titles[i];
+            [infoItems addObject:info];
+        }
+        self.pageTabBar.items = [infoItems copy];
+    }
     
     // other
     _lastSize = CGSizeZero;
