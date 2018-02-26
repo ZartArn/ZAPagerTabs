@@ -22,8 +22,8 @@
     
     ZAPageTabsBarStyle *style = [ZAPageTabsBarStyle new];
     style.backgroundColor   = [UIColor colorWithRed:0.56 green:0.75 blue:0 alpha:1];
-    style.indicatorHeight   = 2.f;
-    style.indicatorColor    = [UIColor colorWithRed:0.25 green:0.4 blue:0.04 alpha:1];
+    style.indicatorHeight   = 10.f;
+    style.indicatorColor    = [UIColor redColor];
     style.selectedColor     = [UIColor whiteColor];
     style.normalColor       = [UIColor colorWithRed:1. green:1 blue:1 alpha:0.8];
 

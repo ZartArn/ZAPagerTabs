@@ -57,7 +57,7 @@
     self.collectionView.backgroundColor = style.backgroundColor ?: [UIColor whiteColor];
     
     // indicator height
-    _indicatorHeight = style.indicatorHeight > 0 ?: 1.5f;
+    _indicatorHeight = (style.indicatorHeight > 0) ? style.indicatorHeight : 1.5f;
     
     // indicator color
     self.indicatorView.backgroundColor = style.indicatorColor ?: self.collectionView.tintColor;
