@@ -54,6 +54,8 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
 - (void)defaultConfigure {
     // tabbar height
     _barHeight = 44.f;
+    // bounces
+    _bounces = YES;
 }
 
 #pragma mark - life cycle
@@ -80,7 +82,7 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     self.containerView = [[UIScrollView alloc] initWithFrame:containerRect];
     _containerView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     
-    _containerView.bounces = YES;
+    _containerView.bounces = _bounces;
     _containerView.alwaysBounceHorizontal = YES;
     _containerView.alwaysBounceVertical = NO;
     _containerView.scrollsToTop = NO;
@@ -366,6 +368,13 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
         return ZAPageTabsSwipeDirectionRight;
     }
     return ZAPageTabsSwipeDirectionNone;
+}
+
+- (void)setBounces:(BOOL)bounces {
+    _bounces = bounces;
+    if (self.isViewLoaded) {
+        self.containerView.bounces = bounces;
+    }
 }
 
 @end

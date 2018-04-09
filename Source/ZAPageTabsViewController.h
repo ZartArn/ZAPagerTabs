@@ -37,4 +37,7 @@
 /// current selected index, readonly yet
 @property (nonatomic) NSInteger selectedIndex;
 
+/// scroll bounces
+@property (nonatomic) BOOL bounces;
+
 @end
