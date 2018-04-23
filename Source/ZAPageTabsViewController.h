@@ -40,4 +40,10 @@
 /// scroll bounces
 @property (nonatomic) BOOL bounces;
 
+/// update indicator, need call super if override
+- (void)updateIndicatorFromIndex:(NSInteger)fromIndex
+                         toIndex:(NSInteger)toIndex
+              progressPercentage:(CGFloat)percentage
+                    indexChanged:(BOOL)indexChanged;
+
 @end
