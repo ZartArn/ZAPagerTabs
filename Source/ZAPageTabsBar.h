@@ -30,6 +30,15 @@
 /// page tabbar cell class if needed
 @property (nonatomic) Class cellClass;
 
+/// show shadow, default NO
+@property (nonatomic) BOOL showShadow;
+
+/// shadow color
+@property (strong, nonatomic) UIColor *shadowColor;
+
+/// shadow height
+@property (nonatomic) CGFloat shadowHeight;
+
 @end
 
 

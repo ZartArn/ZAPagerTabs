@@ -22,6 +22,7 @@
 
 @property (strong, nonatomic) NSDictionary *cachedCellWidths;
 @property (strong, nonatomic) UIView *indicatorView;
+@property (strong, nonatomic) UIView *shadowView;
 
 @property (strong, nonatomic) UIColor *normalColor;
 @property (strong, nonatomic) UIColor *activeColor;
@@ -67,7 +68,33 @@
     
     // text selected color
     self.activeColor = style.selectedColor ?: [UIColor blackColor];
+
+    // shadow
+    if (style.showShadow) {
+        self.shadowView.backgroundColor = style.shadowColor;
+    }
 }
+
+- (UIView *)shadowView {
+    if (!_shadowView) {
+        // shadow view
+        UIView *shadowView = [UIView new];
+        shadowView.backgroundColor = [UIColor lightGrayColor];
+        shadowView.layer.zPosition = 9000;
+        shadowView.frame = (CGRect){
+            0.f,
+            self.barView.bounds.size.height - self.style.shadowHeight,
+            self.barView.bounds.size.width,
+            self.style.shadowHeight
+        };
+        shadowView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin;
+        _shadowView = shadowView;
+        [self.collectionView insertSubview:shadowView belowSubview:self.indicatorView];
+
+    }
+    return _shadowView;
+}
+
 
 - (void)configureViews {
     
@@ -85,6 +112,7 @@
     self.collectionView.showsHorizontalScrollIndicator = NO;
     
     [self.barView addSubview:self.collectionView];
+
 
     // bottom view
     self.indicatorView = [UIView new];
