@@ -14,6 +14,18 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     ZAPageTabsSwipeDirectionNone
 };
 
+@interface ZZIndicatorInfo : NSObject
+
+@property (nonatomic) NSInteger fromIndex;
+@property (nonatomic) NSInteger toIndex;
+@property (nonatomic) CGFloat progress;
+@property (nonatomic) BOOL indexChanged;
+
+@end
+
+@implementation ZZIndicatorInfo
+@end
+
 @interface ZAPageTabsViewController ()
 
 @property (strong, nonatomic) UIScrollView *containerView;
@@ -216,13 +228,22 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     BOOL indexChanged = oldIndex != newIndex;
     _selectedIndex = _preSelectedIndex = newIndex;
     
+    
     if (_shouldUpdateIndicator) {
-        [self prepareAndUpdateIndicator:virtualPage indexChanged:indexChanged];
+        ZZIndicatorInfo *indicatorInfo = [self prepareIndicator:virtualPage indexChanged:indexChanged];
+        [self updateIndicatorFromIndex:indicatorInfo.fromIndex
+                               toIndex:indicatorInfo.toIndex
+                    progressPercentage:indicatorInfo.progress
+                          indexChanged:indicatorInfo.indexChanged];
+        
+        [self didUpdateIndicatorFromIndex:indicatorInfo.fromIndex
+                                  toIndex:indicatorInfo.toIndex
+                       progressPercentage:indicatorInfo.progress indexChanged:indicatorInfo.indexChanged];
     }
 }
 
-- (void)prepareAndUpdateIndicator:(NSInteger)virtualPage
-                     indexChanged:(BOOL)indexChanged {
+- (ZZIndicatorInfo *)prepareIndicator:(NSInteger)virtualPage
+                         indexChanged:(BOOL)indexChanged {
     
     NSInteger cnt = (NSInteger)self.viewControllers.count;
     NSInteger fromIdx = _selectedIndex;
@@ -254,11 +275,14 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
             }
         }
     }
-
-    [self updateIndicatorFromIndex:fromIdx
-                           toIndex:toIdx
-                progressPercentage:percentage
-                      indexChanged:indexChanged];
+    
+    ZZIndicatorInfo *info = [ZZIndicatorInfo new];
+    info.fromIndex = fromIdx;
+    info.toIndex = toIdx;
+    info.progress = percentage;
+    info.indexChanged = indexChanged;
+    
+    return info;
 }
 
 - (void)updateIndicatorFromIndex:(NSInteger)fromIndex
@@ -267,6 +291,14 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
                     indexChanged:(BOOL)indexChanged {
     
     [self.pageTabBar moveFromIndex:fromIndex toIndex:toIndex percentage:percentage indexChanged:indexChanged];
+}
+
+// update indicator for subclass override
+- (void)didUpdateIndicatorFromIndex:(NSInteger)fromIndex
+                         toIndex:(NSInteger)toIndex
+              progressPercentage:(CGFloat)percentage
+                    indexChanged:(BOOL)indexChanged {
+    // can override
 }
 
 #pragma mark - moveTo
@@ -290,9 +322,12 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
         CGPoint offsetB = (CGPoint){[self pageOffsetForChildAtIndex:toIndex], 0};
         [self.containerView setContentOffset:offsetB animated:YES];
         
+        [self didUpdateIndicatorFromIndex:fromIndex toIndex:toIndex progressPercentage:1.f indexChanged:YES];
+        
     } else {
         CGPoint offset = (CGPoint){[self pageOffsetForChildAtIndex:toIndex], 0};
         [self.containerView setContentOffset:offset animated:YES];
+        [self didUpdateIndicatorFromIndex:_selectedIndex toIndex:toIndex progressPercentage:1.f indexChanged:YES];
     }
 }
 
