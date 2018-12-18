@@ -40,6 +40,9 @@
 /// scroll bounces
 @property (nonatomic) BOOL bounces;
 
+/// background color
+@property (strong, nonatomic) UIColor *backgroundColor;
+
 /// update indicator callback
 - (void)didUpdateIndicatorFromIndex:(NSInteger)fromIndex
                          toIndex:(NSInteger)toIndex

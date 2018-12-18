@@ -104,7 +104,7 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     
     _containerView.delegate = self;
     
-    _containerView.backgroundColor = [UIColor whiteColor];
+    _containerView.backgroundColor = self.backgroundColor ?: [UIColor whiteColor];
     [aView addSubview:_containerView];
 
     if ([self.containerView respondsToSelector:@selector(contentInsetAdjustmentBehavior)]) {
