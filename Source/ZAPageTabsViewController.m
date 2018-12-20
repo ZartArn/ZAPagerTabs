@@ -92,22 +92,22 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     
     [aView addSubview:self.pageTabBar.barView];
     [aView addSubview:_containerView];
+    
 
     self.pageTabBar.barView.translatesAutoresizingMaskIntoConstraints = NO;
     self.containerView.translatesAutoresizingMaskIntoConstraints = NO;
 
-    [self.pageTabBar.barView.topAnchor constraintEqualToAnchor:aView.topAnchor];
-    [self.pageTabBar.barView.widthAnchor constraintEqualToAnchor:aView.widthAnchor];
-    [self.pageTabBar.barView.heightAnchor constraintEqualToConstant:_barHeight];
-    [self.pageTabBar.barView.leftAnchor constraintEqualToAnchor:aView.leftAnchor];
-    [self.pageTabBar.barView.rightAnchor constraintEqualToAnchor:aView.rightAnchor];
+    [self.pageTabBar.barView.topAnchor constraintEqualToAnchor:aView.topAnchor].active = YES;
+    [self.pageTabBar.barView.widthAnchor constraintEqualToAnchor:aView.widthAnchor].active = YES;
+    [self.pageTabBar.barView.heightAnchor constraintEqualToConstant:_barHeight].active = YES;
+    [self.pageTabBar.barView.leftAnchor constraintEqualToAnchor:aView.leftAnchor].active = YES;
+    [self.pageTabBar.barView.rightAnchor constraintEqualToAnchor:aView.rightAnchor].active = YES;
 
-    [self.containerView.topAnchor constraintEqualToAnchor:self.pageTabBar.barView.bottomAnchor];
-    [self.containerView.widthAnchor constraintEqualToAnchor:aView.widthAnchor];
-    [self.containerView.leftAnchor constraintEqualToAnchor:aView.leftAnchor];
-    [self.containerView.rightAnchor constraintEqualToAnchor:aView.rightAnchor];
-    [self.containerView.bottomAnchor constraintEqualToAnchor:aView.bottomAnchor];
-    
+    [self.containerView.topAnchor constraintEqualToAnchor:self.pageTabBar.barView.bottomAnchor].active = YES;
+    [self.containerView.widthAnchor constraintEqualToAnchor:aView.widthAnchor].active = YES;
+    [self.containerView.leftAnchor constraintEqualToAnchor:aView.leftAnchor].active = YES;
+    [self.containerView.rightAnchor constraintEqualToAnchor:aView.rightAnchor].active = YES;
+    [self.containerView.bottomAnchor constraintEqualToAnchor:aView.bottomAnchor].active = YES;
     
     // --
     
@@ -122,8 +122,8 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     _containerView.delegate = self;
     
     _containerView.backgroundColor = self.backgroundColor ?: [UIColor whiteColor];
-    [aView addSubview:_containerView];
-
+    self.containerView.backgroundColor = [UIColor yellowColor];
+    
     if ([self.containerView respondsToSelector:@selector(contentInsetAdjustmentBehavior)]) {
         [self.containerView performSelector:@selector(contentInsetAdjustmentBehavior) withObject:@(2)];
     } else {

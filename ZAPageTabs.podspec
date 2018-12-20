@@ -3,7 +3,7 @@ root_path = "/Users/zartarn/works/ZA"
 Pod::Spec.new do |s|
 
   s.name         = "ZAPageTabs"
-  s.version      = "0.0.3"
+  s.version      = "0.0.4"
   s.summary      = "Tabs Page Controller"
 
   s.description  = "Tabs Page Controller"
