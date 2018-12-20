@@ -84,15 +84,32 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     [self.pageTabBar configure];
     self.pageTabBar.delegate = self;
     
-    CGRect barRect = (CGRect){.size = (CGSize){aView.bounds.size.width, _barHeight}};
-    self.pageTabBar.barView.frame = barRect;
-    self.pageTabBar.barView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    [aView addSubview:self.pageTabBar.barView];
     
     // container
-    CGRect containerRect = (CGRect){0.f, _barHeight, aView.bounds.size.width, aView.bounds.size.height - _barHeight};
-    self.containerView = [[UIScrollView alloc] initWithFrame:containerRect];
-    _containerView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    self.containerView = [[UIScrollView alloc] init];
+    
+    // --
+    
+    [aView addSubview:self.pageTabBar.barView];
+    [aView addSubview:_containerView];
+
+    self.pageTabBar.barView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.containerView.translatesAutoresizingMaskIntoConstraints = NO;
+
+    [self.pageTabBar.barView.topAnchor constraintEqualToAnchor:aView.topAnchor];
+    [self.pageTabBar.barView.widthAnchor constraintEqualToAnchor:aView.widthAnchor];
+    [self.pageTabBar.barView.heightAnchor constraintEqualToConstant:_barHeight];
+    [self.pageTabBar.barView.leftAnchor constraintEqualToAnchor:aView.leftAnchor];
+    [self.pageTabBar.barView.rightAnchor constraintEqualToAnchor:aView.rightAnchor];
+
+    [self.containerView.topAnchor constraintEqualToAnchor:self.pageTabBar.barView.bottomAnchor];
+    [self.containerView.widthAnchor constraintEqualToAnchor:aView.widthAnchor];
+    [self.containerView.leftAnchor constraintEqualToAnchor:aView.leftAnchor];
+    [self.containerView.rightAnchor constraintEqualToAnchor:aView.rightAnchor];
+    [self.containerView.bottomAnchor constraintEqualToAnchor:aView.bottomAnchor];
+    
+    
+    // --
     
     _containerView.bounces = _bounces;
     _containerView.alwaysBounceHorizontal = YES;
