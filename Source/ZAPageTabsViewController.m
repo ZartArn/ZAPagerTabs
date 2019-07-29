@@ -68,6 +68,11 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
     _barHeight = 44.f;
     // bounces
     _bounces = YES;
+    
+    // other configure
+    _selectedIndex = 0;
+    _preSelectedIndex = 0;
+    _shouldUpdateIndicator = YES;
 }
 
 #pragma mark - life cycle
@@ -129,10 +134,6 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
         self.automaticallyAdjustsScrollViewInsets = NO;
     }
 
-    // other configure
-    _selectedIndex = 0;
-    _preSelectedIndex = 0;
-    _shouldUpdateIndicator = YES;
 }
 
 - (void)viewDidLoad {
@@ -146,6 +147,9 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
         toController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         [self.containerView addSubview:toController.view];
         [toController didMoveToParentViewController:self];
+        
+        _preSelectedIndex = _selectedIndex;
+        
     }
     
     // tab bar
@@ -189,6 +193,14 @@ typedef NS_ENUM(NSInteger, ZAPageTabsSwipeDirectionType) {
 }
 
 #pragma mark - upadate
+
+- (void)scrollToIndex:(NSUInteger)toIndex {    
+    if (!self.isViewLoaded || self.view.window == nil || _selectedIndex == toIndex) {
+        return;
+    }
+    [self moveToViewControllerAtIndex:toIndex];
+    [self.pageTabBar moveToIndex:toIndex];
+}
 
 - (void)updateIfNeeded {
     if (self.isViewLoaded && !CGSizeEqualToSize(_lastSize, _containerView.bounds.size)) {

@@ -49,4 +49,8 @@
               progressPercentage:(CGFloat)percentage
                     indexChanged:(BOOL)indexChanged;
 
+
+/// select controller at index
+- (void)scrollToIndex:(NSUInteger)toIndex;
+
 @end
